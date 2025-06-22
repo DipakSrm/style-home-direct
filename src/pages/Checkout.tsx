@@ -8,27 +8,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 const Checkout = () => {
   const { state, dispatch } = useCart();
+  const { state: authState } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
+    email: authState.user?.email || '',
+    firstName: authState.user?.firstName || '',
+    lastName: authState.user?.lastName || '',
     address: '',
     city: '',
     state: '',
     zipCode: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    phone: ''
   });
+
+  // Redirect if not authenticated
+  if (!authState.isAuthenticated) {
+    navigate('/cart');
+    return null;
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -43,7 +51,7 @@ const Checkout = () => {
       dispatch({ type: 'CLEAR_CART' });
       toast({
         title: "Order placed successfully!",
-        description: "Thank you for your purchase. You'll receive a confirmation email shortly.",
+        description: `Your order will be processed via ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Khalti'}.`,
       });
       navigate('/orders');
       setIsProcessing(false);
@@ -89,6 +97,17 @@ const Checkout = () => {
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       required
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input 
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      required
                     />
                   </div>
                 </CardContent>
@@ -108,6 +127,7 @@ const Checkout = () => {
                         value={formData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         required
+                        disabled
                       />
                     </div>
                     <div>
@@ -117,6 +137,7 @@ const Checkout = () => {
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         required
+                        disabled
                       />
                     </div>
                   </div>
@@ -140,16 +161,19 @@ const Checkout = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="state">State</Label>
+                      <Label htmlFor="state">Province</Label>
                       <Select value={formData.state} onValueChange={(value) => handleInputChange('state', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select state" />
+                          <SelectValue placeholder="Select province" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="CA">California</SelectItem>
-                          <SelectItem value="NY">New York</SelectItem>
-                          <SelectItem value="TX">Texas</SelectItem>
-                          <SelectItem value="FL">Florida</SelectItem>
+                          <SelectItem value="province-1">Province 1</SelectItem>
+                          <SelectItem value="province-2">Province 2</SelectItem>
+                          <SelectItem value="bagmati">Bagmati Province</SelectItem>
+                          <SelectItem value="gandaki">Gandaki Province</SelectItem>
+                          <SelectItem value="lumbini">Lumbini Province</SelectItem>
+                          <SelectItem value="karnali">Karnali Province</SelectItem>
+                          <SelectItem value="sudurpashchim">Sudurpashchim Province</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -166,44 +190,33 @@ const Checkout = () => {
                 </CardContent>
               </Card>
 
-              {/* Payment Information */}
+              {/* Payment Method */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Payment Information</CardTitle>
+                  <CardTitle>Payment Method</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input 
-                      id="cardNumber"
-                      placeholder="1234 5678 9012 3456"
-                      value={formData.cardNumber}
-                      onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="expiryDate">Expiry Date</Label>
-                      <Input 
-                        id="expiryDate"
-                        placeholder="MM/YY"
-                        value={formData.expiryDate}
-                        onChange={(e) => handleInputChange('expiryDate', e.target.value)}
-                        required
-                      />
+                <CardContent>
+                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                      <RadioGroupItem value="cod" id="cod" />
+                      <Label htmlFor="cod" className="flex-grow cursor-pointer">
+                        <div>
+                          <div className="font-semibold">Cash on Delivery (COD)</div>
+                          <div className="text-sm text-gray-600">Pay when your order arrives</div>
+                        </div>
+                      </Label>
                     </div>
-                    <div>
-                      <Label htmlFor="cvv">CVV</Label>
-                      <Input 
-                        id="cvv"
-                        placeholder="123"
-                        value={formData.cvv}
-                        onChange={(e) => handleInputChange('cvv', e.target.value)}
-                        required
-                      />
+                    <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                      <RadioGroupItem value="khalti" id="khalti" />
+                      <Label htmlFor="khalti" className="flex-grow cursor-pointer">
+                        <div>
+                          <div className="font-semibold">Khalti Digital Wallet</div>
+                          <div className="text-sm text-gray-600">Pay securely with Khalti</div>
+                        </div>
+                      </Label>
+                      <div className="text-purple-600 font-bold text-lg">khalti</div>
                     </div>
-                  </div>
+                  </RadioGroup>
                 </CardContent>
               </Card>
             </div>
@@ -258,7 +271,7 @@ const Checkout = () => {
                       className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 mt-6"
                       disabled={isProcessing}
                     >
-                      {isProcessing ? 'Processing...' : 'Complete Order'}
+                      {isProcessing ? 'Processing...' : `Complete Order (${paymentMethod === 'cod' ? 'COD' : 'Khalti'})`}
                     </Button>
                     
                     <p className="text-xs text-gray-500 text-center mt-4">

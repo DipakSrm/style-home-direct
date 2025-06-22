@@ -8,6 +8,16 @@ import { products, categories } from "@/data/products";
 const Index = () => {
   const featuredProducts = products.slice(0, 4);
 
+  // Get reference images for each category
+  const getCategoryImage = (categoryId: string) => {
+    const categoryProduct = products.find(p => p.category === categoryId);
+    return categoryProduct?.image || "https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=200&h=200&fit=crop";
+  };
+
+  const getSalePercentage = (originalPrice: number, currentPrice: number) => {
+    return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -59,8 +69,12 @@ const Index = () => {
               <Link key={category.id} to={`/products?category=${category.id}`}>
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
                   <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-200 transition-colors">
-                      <div className="w-6 h-6 bg-amber-600 rounded"></div>
+                    <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 group-hover:scale-105 transition-transform">
+                      <img 
+                        src={getCategoryImage(category.id)} 
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
                     <p className="text-sm text-gray-500">{category.count} items</p>
@@ -92,7 +106,7 @@ const Index = () => {
                     />
                     {product.originalPrice && (
                       <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 text-sm font-semibold rounded">
-                        Sale
+                        {getSalePercentage(product.originalPrice, product.price)}% OFF
                       </div>
                     )}
                   </div>

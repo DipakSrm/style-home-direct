@@ -13,6 +13,10 @@ const Products = () => {
   const [sortBy, setSortBy] = useState('name');
   const [priceRange, setPriceRange] = useState('all');
 
+  const getSalePercentage = (originalPrice: number, currentPrice: number) => {
+    return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+  };
+
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
 
@@ -149,7 +153,7 @@ const Products = () => {
                   />
                   {product.originalPrice && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 text-sm font-semibold rounded">
-                      Sale
+                      {getSalePercentage(product.originalPrice, product.price)}% OFF
                     </div>
                   )}
                   {!product.inStock && (

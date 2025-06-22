@@ -18,6 +18,10 @@ const ProductDetail = () => {
 
   const product = products.find(p => p.id === id);
 
+  const getSalePercentage = (originalPrice: number, currentPrice: number) => {
+    return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -117,7 +121,7 @@ const ProductDetail = () => {
                 )}
                 {product.originalPrice && (
                   <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">
-                    Save ${product.originalPrice - product.price}
+                    {getSalePercentage(product.originalPrice, product.price)}% OFF
                   </span>
                 )}
               </div>
