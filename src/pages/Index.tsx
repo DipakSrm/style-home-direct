@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { products, categories } from "@/data/products";
 
 const Index = () => {
@@ -22,7 +23,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      {/* Hero Section */}
+      {/* Hero Section with Carousel */}
       <section className="relative bg-gradient-to-br from-amber-50 to-orange-100 py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -46,11 +47,41 @@ const Index = () => {
               </div>
             </div>
             <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=600&h=400&fit=crop" 
-                alt="Modern living room"
-                className="rounded-lg shadow-2xl"
-              />
+              <Carousel className="w-full max-w-lg mx-auto">
+                <CarouselContent>
+                  {featuredProducts.map((product) => (
+                    <CarouselItem key={product.id}>
+                      <Link to={`/products/${product.id}`}>
+                        <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer">
+                          <div className="relative overflow-hidden rounded-lg">
+                            <img 
+                              src={product.image} 
+                              alt={product.name}
+                              className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {product.originalPrice && (
+                              <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 text-sm font-semibold rounded">
+                                {getSalePercentage(product.originalPrice, product.price)}% OFF
+                              </div>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 text-white">
+                              <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xl font-bold">${product.price}</span>
+                                {product.originalPrice && (
+                                  <span className="text-sm line-through opacity-75">${product.originalPrice}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-2" />
+                <CarouselNext className="right-2" />
+              </Carousel>
             </div>
           </div>
         </div>
