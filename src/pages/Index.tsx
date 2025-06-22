@@ -47,7 +47,32 @@ const Index = () => {
               </div>
             </div>
             <div className="relative">
-              <Carousel className="w-full max-w-lg mx-auto">
+              <Carousel 
+                className="w-full max-w-lg mx-auto"
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                plugins={[
+                  {
+                    name: "autoplay",
+                    init: (embla) => {
+                      const autoplay = () => {
+                        if (embla.canScrollNext()) {
+                          embla.scrollNext();
+                        } else {
+                          embla.scrollTo(0);
+                        }
+                      };
+                      
+                      const interval = setInterval(autoplay, 3000);
+                      
+                      embla.on("pointerDown", () => clearInterval(interval));
+                      embla.on("destroy", () => clearInterval(interval));
+                    }
+                  }
+                ]}
+              >
                 <CarouselContent>
                   {featuredProducts.map((product) => (
                     <CarouselItem key={product.id}>
