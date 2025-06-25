@@ -50,7 +50,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await signup(signupData.email, signupData.password, signupData.firstName, signupData.lastName);
+    const success = await signup(
+      signupData.firstName.concat(" "+signupData.lastName),
+      signupData.email,
+      signupData.password
+    );
     if (success) {
       toast({
         title: "Account created!",

@@ -16,7 +16,7 @@ const Navigation = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
-
+console.log("isauthenticated", authState.isAuthenticated);
   return (
     <>
       <nav className="bg-white shadow-sm sticky top-0 z-50">
