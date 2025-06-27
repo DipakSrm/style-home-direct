@@ -1,8 +1,8 @@
-
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Orders = () => {
   // Mock order data
@@ -127,18 +127,22 @@ const Orders = () => {
                     
                     {/* Action Buttons */}
                     <div className="flex space-x-3 pt-4">
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
+                      <Link to={`/orders/${order.id}`}>
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                      </Link>
                       {order.status === 'delivered' && (
                         <Button variant="outline" size="sm">
                           Reorder
                         </Button>
                       )}
                       {order.status === 'shipped' && (
-                        <Button variant="outline" size="sm">
-                          Track Package
-                        </Button>
+                        <Link to="/track-order">
+                          <Button variant="outline" size="sm">
+                            Track Package
+                          </Button>
+                        </Link>
                       )}
                     </div>
                   </div>

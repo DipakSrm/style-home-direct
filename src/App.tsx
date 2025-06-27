@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,8 +12,11 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
+import OrderDetails from "./pages/OrderDetails";
+import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/Protected";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -37,6 +39,8 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:orderId" element={<OrderDetails />} />
+              <Route path="/track-order" element={<OrderTracking />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
