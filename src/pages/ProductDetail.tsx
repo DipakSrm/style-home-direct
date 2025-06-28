@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -6,72 +5,114 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
-import { products } from "@/data/products";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import { IProduct } from "@/lib/types";
-import { set } from "date-fns";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { dispatch } = useCart();
   const { toast } = useToast();
   const [product, setProduct] = useState<IProduct | null>(null);
-  const [relatedProduct, setrelatedProduct] = useState<IProduct[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<IProduct[]>([]);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-useEffect(()=>{
-    if(!id) {
-      return;
-    }
-    const fetchProductDetails=async()=>{
-      try {
-        const response=await axios.get(`http://localhost:5000/api/v1/products/${id}`);
-        if(response.status === 200) {
-setProduct(response.data.data);
-      }}
-       catch (error) {
-        console.log("Error fetching product details:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load product details. Please try again later.",
-          variant: "destructive"
-        });
-    }}
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
 
-    fetchProductDetails()
-},[])
-useEffect(() => {
-  if (!id || product === null) {
-    return;
-  }
-  const fetchRelatedProductDetails = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/v1/products/search?category=${product.categoryId.name}&excludeId=${id}`
-      );
-      if (response.status === 200) {
-        setrelatedProduct(response.data.data.product);
-      }
-    } catch (error) {
-      console.log("Error fetching product details:", error);
+  // Fetch product details
+  useEffect(() => {
+    if (!id) {
       toast({
         title: "Error",
-        description: "Failed to load product details. Please try again later.",
+        description: "Invalid product ID.",
         variant: "destructive",
       });
+      return;
+    }
+
+    const fetchProductDetails = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/v1/products/${id}`
+        );
+        if (response.status === 200) {
+          setProduct(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+        toast({
+          title: "Error",
+          description:
+            "Failed to load product details. Please try again later.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchProductDetails();
+  }, [id, toast]);
+
+  // Fetch related products
+  const fetchRelatedProductDetails = async () => {
+    if (!product || !product.subcategoryId?.name) return;
+
+    setIsLoadingRelated(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/v1/products/search?subcategory=${encodeURIComponent(
+          product.subcategoryId.name
+        )}&excludeId=${id}`
+      );
+      if (response.status === 200) {
+        // Adjust based on actual API response structure
+        const relatedProducts =
+          response.data.data.products || response.data.data.product || [];
+        setRelatedProducts(relatedProducts.filter((p:IProduct) => p._id !== id));
+        console.log(
+          "Related products fetched successfully:",
+          relatedProducts,
+          response
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching related products:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load related products. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingRelated(false);
     }
   };
 
-  fetchRelatedProductDetails();
-}, []);
+  // Fetch related products when product changes
   useEffect(() => {
-    if (product && product.images.length > 0) {
-      setSelectedImage(0);
-    }
+    fetchRelatedProductDetails();
   }, [product]);
+
   const getSalePercentage = (previousPrice: number, currentPrice: number) => {
     return Math.round(((previousPrice - currentPrice) / previousPrice) * 100);
+  };
+
+  const addToCart = () => {
+    if (!product) return;
+
+    for (let i = 0; i < quantity; i++) {
+      dispatch({
+        type: "ADD_ITEM",
+        payload: {
+          productId: product,
+        },
+      });
+    }
+
+    toast({
+      title: "Added to cart!",
+      description: `${quantity} ${product.name}${
+        quantity > 1 ? "s" : ""
+      } added to your cart.`,
+    });
   };
 
   if (!product) {
@@ -79,7 +120,9 @@ useEffect(() => {
       <div className="min-h-screen bg-gray-50">
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Product Not Found
+          </h1>
           <Link to="/products">
             <Button>Browse Products</Button>
           </Link>
@@ -88,30 +131,9 @@ useEffect(() => {
     );
   }
 
-  const addToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      dispatch({
-        type: 'ADD_ITEM',
-        payload: {
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          image: product.images[0]
-        }
-      });
-    }
-    
-    toast({
-      title: "Added to cart!",
-      description: `${quantity} ${product.name}${quantity > 1 ? 's' : ''} added to your cart.`,
-    });
-  };
-
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="mb-8">
@@ -125,7 +147,7 @@ useEffect(() => {
             </Link>
             <span className="mx-2">/</span>
             <span className="text-gray-900 capitalize">
-              {product.subcategoryId.name}
+              {product.subcategoryId?.name || "N/A"}
             </span>
             <span className="mx-2">/</span>
             <span className="text-gray-900">{product.name}</span>
@@ -177,7 +199,9 @@ useEffect(() => {
                   {[...Array(5)].map((_, i) => (
                     <span
                       key={i}
-                      className={i < Math.floor(product.ratingAverage) ? "★" : "☆"}
+                      className={
+                        i < Math.floor(product.ratingAverage) ? "★" : "☆"
+                      }
                     >
                       ★
                     </span>
@@ -189,11 +213,11 @@ useEffect(() => {
               </div>
               <div className="flex items-center space-x-4 mb-6">
                 <span className="text-3xl font-bold text-amber-600">
-                  ${product.price}
+                  Rs {product.price.toFixed(2)}
                 </span>
                 {product.previousPrice && (
                   <span className="text-2xl text-gray-500 line-through">
-                    ${product.previousPrice}
+                    Rs {product.previousPrice.toFixed(2)}
                   </span>
                 )}
                 {product.previousPrice && (
@@ -240,7 +264,10 @@ useEffect(() => {
                     </button>
                     <span className="px-4 py-1 border-x">{quantity}</span>
                     <button
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => {
+                        if (quantity === product.stock) return;
+                        else setQuantity(quantity + 1);
+                      }}
                       className="px-3 py-1 hover:bg-gray-100"
                     >
                       +
@@ -251,8 +278,9 @@ useEffect(() => {
                   onClick={addToCart}
                   size="lg"
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3"
+                  disabled={!product.stock}
                 >
-                  Add to Cart - ${(product.price * quantity).toFixed(2)}
+                  Add to Cart - Rs {(product.price * quantity).toFixed(2)}
                 </Button>
               </div>
             )}
@@ -261,16 +289,15 @@ useEffect(() => {
             <Card className="mb-8">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-4">Product Details</h3>
-
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
                       Dimensions
                     </h4>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p>Width: {product.dimensions.width}</p>
-                      <p>Height: {product.dimensions.height}</p>
-                      <p>Length: {product.dimensions.length}</p>
+                      <p>Width: {product.dimensions?.width || "N/A"}</p>
+                      <p>Height: {product.dimensions?.height || "N/A"}</p>
+                      <p>Length: {product.dimensions?.length || "N/A"}</p>
                     </div>
                   </div>
 
@@ -281,9 +308,9 @@ useEffect(() => {
                       Materials
                     </h4>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {product.materials.map((material, index) => (
+                      {product.materials?.map((material, index) => (
                         <li key={index}>• {material}</li>
-                      ))}
+                      )) || <li>No materials specified</li>}
                     </ul>
                   </div>
 
@@ -292,9 +319,9 @@ useEffect(() => {
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Features</h4>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {product.features.map((feature, index) => (
+                      {product.features?.map((feature, index) => (
                         <li key={index}>• {feature}</li>
-                      ))}
+                      )) || <li>No features specified</li>}
                     </ul>
                   </div>
                 </div>
@@ -304,13 +331,17 @@ useEffect(() => {
         </div>
 
         {/* Related Products */}
-        {relatedProduct.length > 0 && (
+        {isLoadingRelated ? (
+          <div className="mt-16 text-center">
+            <p className="text-gray-600">Loading related products...</p>
+          </div>
+        ) : relatedProducts.length > 0 ? (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">
               Related Products
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {relatedProduct.map((relatedProduct) => (
+              {relatedProducts.map((relatedProduct) => (
                 <Link
                   key={relatedProduct._id}
                   to={`/products/${relatedProduct._id}`}
@@ -318,7 +349,10 @@ useEffect(() => {
                   <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer">
                     <div className="relative overflow-hidden">
                       <img
-                        src={relatedProduct.images[0] || "https://res.cloudinary.com/dgzf4h7hn/image/upload/v1750871162/istockphoto-1415799772-612x612_hfqlhv.jpg"}
+                        src={
+                          relatedProduct.images[0] ||
+                          "https://res.cloudinary.com/dgzf4h7hn/image/upload/v1750871162/istockphoto-1415799772-612x612_hfqlhv.jpg"
+                        }
                         alt={relatedProduct.name}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -329,11 +363,11 @@ useEffect(() => {
                       </h3>
                       <div className="flex items-center space-x-2">
                         <span className="text-xl font-bold text-amber-600">
-                          ${relatedProduct.price}
+                          Rs {relatedProduct.price.toFixed(2)}
                         </span>
                         {relatedProduct.previousPrice && (
                           <span className="text-sm text-gray-500 line-through">
-                            ${relatedProduct.previousPrice}
+                            Rs {relatedProduct.previousPrice.toFixed(2)}
                           </span>
                         )}
                       </div>
@@ -343,7 +377,7 @@ useEffect(() => {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

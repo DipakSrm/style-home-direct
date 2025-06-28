@@ -7,12 +7,15 @@ import React, {
 } from "react";
 import axios from "axios";
 import { toast } from "@/hooks/use-toast";
+import { IAddress } from "@/lib/types";
 
 interface User {
   id: string;
   role: "admin" | "user";
   email: string;
   name?: string;
+  phone?: string;
+  AddressData?:IAddress;
 }
 
 interface AuthState {
@@ -39,30 +42,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading: true,
   });
 
-  const fetchUser = async (token: string) => {
+  const fetchUserAndAddress = async (token: string) => {
     try {
       const res = await axios.get("http://localhost:5000/api/v1/users/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.status === 200) {
-        setState((prev) => ({
-          ...prev,
-          user: res.data.user,
+        const user = res.data.user;
+
+        const addressRes = await axios.get(
+          "http://localhost:5000/api/v1/addresses/",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (addressRes.status === 200 && addressRes.data.data.length > 0) {
+          user.AddressData = addressRes.data.data[0];
+        }
+
+        setState({
+          user,
           isAuthenticated: true,
           token,
           loading: false,
-        }));
+        });
 
         toast({
           title: "Welcome back!",
-          description: `Hello ${res.data.user.name || res.data.user.email}`,
+          description: `Hello ${user.name || user.email}`,
         });
       }
     } catch (error) {
-      console.error("Failed to fetch user", error);
+      console.error("Failed to fetch user or address", error);
       localStorage.removeItem("token");
 
       setState({
@@ -73,11 +86,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     }
   };
+  
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetchUser(token);
+      fetchUserAndAddress(token);
     } else {
       setState((prev) => ({ ...prev, loading: false }));
     }

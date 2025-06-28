@@ -15,6 +15,9 @@ import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/Protected";
+import OrderConfirmation from "./pages/OrderConfirmation";
+import OrderDetails from "./pages/OrderDetails";
+import OrderTracking from "./pages/OrderTrackingPage";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,12 +33,27 @@ const App = () => (
               <Route path="/products" element={<Products />} />
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route
+                path="/orderConfirmation"
+                element={<OrderConfirmation />}
+              />
+
+              <Route path="/orderdetails/:orderId" element={<OrderDetails />} />
+              <Route
+                path="/ordertracking/:orderId"
+                element={<OrderTracking />}
+              />
+
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/profile" element={
-                <ProtectedRoute allowedRoles={["user", "admin"]}>
-                  <Profile />
-                </ProtectedRoute>
-              } />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute allowedRoles={["user", "admin"]}>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/orders" element={<Orders />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

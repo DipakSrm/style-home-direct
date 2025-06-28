@@ -29,19 +29,17 @@ const Products = () => {
     limit: 12,
   });
 
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
-  );
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("subcategory") || ""
-  );
-  const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "newest");
-  const [priceRange, setPriceRange] = useState(
-    searchParams.get("priceRange") || "all"
-  );
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get("page")) || 1
+  // Get current filter values from URL
+  const currentFilters = useMemo(
+    () => ({
+      searchTerm: searchParams.get("search") || "",
+      selectedCategory: searchParams.get("subcategory") || "",
+      selectedMainCategory: searchParams.get("category") || "",
+      sortBy: searchParams.get("sortBy") || "newest",
+      priceRange: searchParams.get("priceRange") || "all",
+      currentPage: parseInt(searchParams.get("page")) || 1,
+    }),
+    [searchParams]
   );
 
   // Fetch subcategories
@@ -61,19 +59,24 @@ const Products = () => {
     fetchSubcategories();
   }, []);
 
-  // Fetch products with filters
+  // Fetch products with filters - only triggered by URL changes
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
 
-      if (searchTerm) params.append("search", searchTerm);
-      if (selectedCategory) params.append("subcategory", selectedCategory);
-      if (sortBy && sortBy !== "newest") params.append("sortBy", sortBy);
+      if (currentFilters.searchTerm)
+        params.append("search", currentFilters.searchTerm);
+      if (currentFilters.selectedCategory)
+        params.append("subcategory", currentFilters.selectedCategory);
+      if (currentFilters.selectedMainCategory)
+        params.append("category", currentFilters.selectedMainCategory);
+      if (currentFilters.sortBy && currentFilters.sortBy !== "newest")
+        params.append("sortBy", currentFilters.sortBy);
 
       // Handle price range
-      if (priceRange !== "all") {
-        switch (priceRange) {
+      if (currentFilters.priceRange !== "all") {
+        switch (currentFilters.priceRange) {
           case "under-500":
             params.append("maxPrice", "500");
             break;
@@ -87,7 +90,7 @@ const Products = () => {
         }
       }
 
-      params.append("page", currentPage.toString());
+      params.append("page", currentFilters.currentPage.toString());
       params.append("limit", pagination.limit.toString());
 
       const response = await axios.get(
@@ -106,65 +109,69 @@ const Products = () => {
     }
   };
 
-  // Fetch products when filters change
+  // Fetch products when URL changes (single useEffect for all filters)
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedCategory, sortBy, priceRange, currentPage]);
+  }, [searchParams]); // Only watch searchParams changes
 
-  // Update URL params when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
+  // Helper function to update URL with new filter values
+  const updateUrlFilters = (newFilters: Partial<typeof currentFilters>) => {
+    const params = new URLSearchParams(searchParams);
 
-    if (searchTerm) params.set("search", searchTerm);
-    if (selectedCategory) params.set("subcategory", selectedCategory);
-    if (sortBy !== "newest") params.set("sortBy", sortBy);
-    if (priceRange !== "all") params.set("priceRange", priceRange);
-    if (currentPage > 1) params.set("page", currentPage.toString());
+    // Merge current filters with new ones
+    const updatedFilters = { ...currentFilters, ...newFilters };
+
+    // Always reset page to 1 when other filters change (except when only page is changing)
+    if (Object.keys(newFilters).some((key) => key !== "currentPage")) {
+      updatedFilters.currentPage = 1;
+    }
+
+    // Clear existing params
+    params.forEach((_, key) => params.delete(key));
+
+    // Set new params only if they have values different from defaults
+    if (updatedFilters.searchTerm)
+      params.set("search", updatedFilters.searchTerm);
+    if (updatedFilters.selectedCategory)
+      params.set("subcategory", updatedFilters.selectedCategory);
+    if (updatedFilters.sortBy !== "newest")
+      params.set("sortBy", updatedFilters.sortBy);
+    if (updatedFilters.priceRange !== "all")
+      params.set("priceRange", updatedFilters.priceRange);
+    if (updatedFilters.currentPage > 1)
+      params.set("page", updatedFilters.currentPage.toString());
 
     setSearchParams(params);
-  }, [
-    searchTerm,
-    selectedCategory,
-    sortBy,
-    priceRange,
-    currentPage,
-    setSearchParams,
-  ]);
+  };
 
   const getSalePercentage = (originalPrice: number, currentPrice: number) => {
     return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
   };
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category === "all" ? "" : category);
-    setCurrentPage(1); // Reset to first page when filter changes
+    updateUrlFilters({
+      selectedCategory: category === "all" ? "" : category,
+    });
   };
 
   const handleSortChange = (sort: string) => {
-    setSortBy(sort);
-    setCurrentPage(1);
+    updateUrlFilters({ sortBy: sort });
   };
 
   const handlePriceRangeChange = (range: string) => {
-    setPriceRange(range);
-    setCurrentPage(1);
+    updateUrlFilters({ priceRange: range });
   };
 
   const handleSearchChange = (search: string) => {
-    setSearchTerm(search);
-    setCurrentPage(1);
+    updateUrlFilters({ searchTerm: search });
   };
 
   const clearAllFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("");
-    setSortBy("newest");
-    setPriceRange("all");
-    setCurrentPage(1);
+    setSearchParams(new URLSearchParams()); // Clear all URL params
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    updateUrlFilters({ currentPage: page });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -224,7 +231,7 @@ const Products = () => {
               <Input
                 type="text"
                 placeholder="Search by name..."
-                value={searchTerm}
+                value={currentFilters.searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full"
               />
@@ -236,7 +243,7 @@ const Products = () => {
                 Sub Category
               </label>
               <Select
-                value={selectedCategory || "all"}
+                value={currentFilters.selectedCategory || "all"}
                 onValueChange={handleCategoryChange}
               >
                 <SelectTrigger>
@@ -258,7 +265,10 @@ const Products = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Price Range
               </label>
-              <Select value={priceRange} onValueChange={handlePriceRangeChange}>
+              <Select
+                value={currentFilters.priceRange}
+                onValueChange={handlePriceRangeChange}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -276,7 +286,10 @@ const Products = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Sort By
               </label>
-              <Select value={sortBy} onValueChange={handleSortChange}>
+              <Select
+                value={currentFilters.sortBy}
+                onValueChange={handleSortChange}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -356,11 +369,11 @@ const Products = () => {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <span className="text-2xl font-bold text-amber-600">
-                          ${product.price}
+                          Rs {product.price}
                         </span>
                         {product.previousPrice && (
                           <span className="text-lg text-gray-500 line-through">
-                            ${product.previousPrice}
+                            Rs {product.previousPrice}
                           </span>
                         )}
                       </div>

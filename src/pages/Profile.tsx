@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { IAddress, IUser } from "@/lib/types";
 import axios from "axios";
+import { Select } from "@radix-ui/react-select";
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -356,17 +358,43 @@ const Profile = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="state">State</Label>
-                        <Input
-                          id="state"
-                          value={addressData.state || ""}
-                          onChange={(e) =>
+                        <Label htmlFor="state">Province</Label>
+                        <Select
+                          value={addressData.state}
+                          onValueChange={(value) =>
                             setAddressData({
                               ...addressData,
-                              state: e.target.value,
+                              state: value,
                             })
                           }
-                        />
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select province" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="province-1">
+                              Province 1
+                            </SelectItem>
+                            <SelectItem value="province-2">
+                              Province 2
+                            </SelectItem>
+                            <SelectItem value="bagmati">
+                              Bagmati Province
+                            </SelectItem>
+                            <SelectItem value="gandaki">
+                              Gandaki Province
+                            </SelectItem>
+                            <SelectItem value="lumbini">
+                              Lumbini Province
+                            </SelectItem>
+                            <SelectItem value="karnali">
+                              Karnali Province
+                            </SelectItem>
+                            <SelectItem value="sudurpashchim">
+                              Sudurpashchim Province
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <Label htmlFor="postalCode">ZIP Code</Label>

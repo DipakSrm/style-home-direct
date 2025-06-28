@@ -65,11 +65,11 @@ const TrendingProductSection = () => {
                   </h3>
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-2xl font-bold text-amber-600">
-                      ${product.price}
+                      Rs {product.price}
                     </span>
                     {product.previousPrice && (
                       <span className="text-lg text-gray-500 line-through">
-                        ${product.previousPrice}
+                        Rs {product.previousPrice}
                       </span>
                     )}
                   </div>

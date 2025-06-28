@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -12,28 +12,43 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { set } from "date-fns";
+import axios from "axios";
 
 const Checkout = () => {
   const { state, dispatch } = useCart();
-  const { state: authState } = useAuth();
+  const { user,isAuthenticated,token } = useAuth().state;
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('cod');
-
-  const [formData, setFormData] = useState({
-    email: authState.user?.email || '',
-    firstName: authState.user?.firstName || '',
-    lastName: authState.user?.lastName || '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    phone: ''
-  });
-
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'Khalti'>('COD');
+console.log(user,"userdaatra");
+const [formData, setFormData] = useState({
+  email: "",
+  firstName: "",
+  lastName: "",
+  address: "",
+  city: "",
+  state: "",
+  zipCode: "",
+  phone: "",
+});
+useEffect(() => {
+  if (user) {
+    setFormData({
+      email: user.email || "",
+      firstName: user.name?.split(" ")[0] || "",
+      lastName: user.name?.split(" ")[1] || "",
+      address: user.AddressData?.addressLine || "",
+      city: user.AddressData?.city || "",
+      state: user.AddressData?.state || "",
+      zipCode: user.AddressData?.postalCode || "",
+      phone: user.phone || "",
+    });
+  }
+}, [user]);
   // Redirect if not authenticated
-  if (!authState.isAuthenticated) {
+  if (!isAuthenticated) {
     navigate('/cart');
     return null;
   }
@@ -43,19 +58,89 @@ const Checkout = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setIsProcessing(true);
+    e.preventDefault();
+    console.log("formData",formData,state);
+    if(!token) return toast({
+      title: "Authentication Error",
+      description: "You need to be logged in to complete the checkout.",
+      variant: "destructive",
+    });
+try {
+ 
+  const res = await axios.post(
+    `http://localhost:5000/api/v1/orders`,
+    {
+      items: state.items.map((item) => ({
+        productId: item.productId._id,
+        quantity: item.quantity,
+      })),
+      totalAmount: parseFloat((state.total * 1.13).toFixed(2)), // Including tax
+      shippingAddress: {
+        name: formData.firstName.concat(" ", formData.lastName),
+        addressLine: formData.address,
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.zipCode,
+        phone: formData.phone,
+        country: "Nepal",
+      },
+      paymentMethod,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  if(res.status === 201 && paymentMethod === 'Khalti') {
+    // Clear cart after successful order
+  
+    try {
+   
+      const response = await axios.post(
+        `http://localhost:5000/api/v1/payment/khalti/initiate`,
+        {
+          return_url: "http://localhost:8080/orderConfirmation",
+          website_url: "http://localhost:8080/",
+          amount: parseInt((state.total * 1.13 * 100).toFixed(2)), 
+          purchase_order_id: res.data.data._id,
+          purchase_order_name: `${user.name} Order #${res.data.data._id}`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if(response.status === 200){
+     
+        window.open(response.data.payment_url);
+
+      }
+    } catch (error) {
+      console.log("Error while payment cart:", error);
+      setIsProcessing(false);
+    }
+  
+  }
+else if(res.status === 201 && paymentMethod === 'COD') {
+    // Clear cart after successful order
+    dispatch({ type: 'CLEAR_CART' });
+    toast({
+      title: "Order Placed Successfully",
+      description: "Your order has been placed successfully. You will receive a confirmation soon.",
+      variant: "default",
+    });
+    navigate('/orders');
+  }
+} catch (error) {
+  console.log("Error during checkout:", error);
+}
+
 
     // Simulate payment processing
-    setTimeout(() => {
-      dispatch({ type: 'CLEAR_CART' });
-      toast({
-        title: "Order placed successfully!",
-        description: `Your order will be processed via ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Khalti'}.`,
-      });
-      navigate('/orders');
-      setIsProcessing(false);
-    }, 2000);
+   
   };
 
   if (state.items.length === 0) {
@@ -196,10 +281,10 @@ const Checkout = () => {
                   <CardTitle>Payment Method</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'COD' | 'Khalti')}>
                     <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                      <RadioGroupItem value="cod" id="cod" />
-                      <Label htmlFor="cod" className="flex-grow cursor-pointer">
+                      <RadioGroupItem value="COD" id="COD" />
+                      <Label htmlFor="COD" className="flex-grow cursor-pointer">
                         <div>
                           <div className="font-semibold">Cash on Delivery (COD)</div>
                           <div className="text-sm text-gray-600">Pay when your order arrives</div>
@@ -207,8 +292,8 @@ const Checkout = () => {
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                      <RadioGroupItem value="khalti" id="khalti" />
-                      <Label htmlFor="khalti" className="flex-grow cursor-pointer">
+                      <RadioGroupItem value="Khalti" id="Khalti" />
+                      <Label htmlFor="Khalti" className="flex-grow cursor-pointer">
                         <div>
                           <div className="font-semibold">Khalti Digital Wallet</div>
                           <div className="text-sm text-gray-600">Pay securely with Khalti</div>
@@ -230,17 +315,17 @@ const Checkout = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {state.items.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-4">
+                      <div key={item.productId._id} className="flex items-center space-x-4">
                         <img 
-                          src={item.image} 
-                          alt={item.name}
+                          src={item.productId.images[0] || "https://res.cloudinary.com/dgzf4h7hn/image/upload/v1750871162/istockphoto-1415799772-612x612_hfqlhv.jpg"} 
+                          alt={item.productId.name}
                           className="w-16 h-16 object-cover rounded"
                         />
                         <div className="flex-grow">
-                          <h4 className="font-semibold">{item.name}</h4>
+                          <h4 className="font-semibold">{item.productId.name}</h4>
                           <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                         </div>
-                        <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-semibold">Rs {(item.productId.price * item.quantity).toFixed(2)}</p>
                       </div>
                     ))}
                     
@@ -249,7 +334,7 @@ const Checkout = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span>Subtotal</span>
-                        <span>${state.total.toFixed(2)}</span>
+                        <span>Rs {state.total.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Shipping</span>
@@ -257,12 +342,12 @@ const Checkout = () => {
                       </div>
                       <div className="flex justify-between">
                         <span>Tax</span>
-                        <span>${(state.total * 0.08).toFixed(2)}</span>
+                        <span>Rs {(state.total * 0.08).toFixed(2)}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between text-xl font-bold">
                         <span>Total</span>
-                        <span className="text-amber-600">${(state.total * 1.08).toFixed(2)}</span>
+                        <span className="text-amber-600">Rs {(state.total * 1.13).toFixed(2)}</span>
                       </div>
                     </div>
                     
@@ -271,7 +356,7 @@ const Checkout = () => {
                       className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 mt-6"
                       disabled={isProcessing}
                     >
-                      {isProcessing ? 'Processing...' : `Complete Order (${paymentMethod === 'cod' ? 'COD' : 'Khalti'})`}
+                      {isProcessing ? 'Processing...' : `Complete Order (${paymentMethod === 'COD' ? 'COD' : 'Khalti'})`}
                     </Button>
                     
                     <p className="text-xs text-gray-500 text-center mt-4">

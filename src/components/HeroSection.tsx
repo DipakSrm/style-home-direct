@@ -49,9 +49,7 @@ setFeaturedProducts(response.data.data.products);
                   Shop Collection
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="px-8 py-3">
-                Design Consultation
-              </Button>
+              
             </div>
           </div>
           <div className="relative">
@@ -85,11 +83,11 @@ setFeaturedProducts(response.data.data.products);
                             </h3>
                             <div className="flex items-center space-x-2">
                               <span className="text-xl font-bold">
-                                ${product.price}
+                                Rs {product.price}
                               </span>
                               {product.previousPrice && (
                                 <span className="text-sm line-through opacity-75">
-                                  ${product.previousPrice}
+                                  Rs {product.previousPrice}
                                 </span>
                               )}
                             </div>

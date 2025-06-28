@@ -19,7 +19,7 @@ export interface IAddress {
 }
 
 export interface ICartItem {
-  productId: string;
+  productId: IProduct;
   quantity: number;
 }
 
@@ -28,6 +28,7 @@ export interface ICart {
   userId: string;
   items: ICartItem[];
   updatedAt: string;
+  total:number
 }
 
 export interface ICategory {
@@ -35,6 +36,8 @@ export interface ICategory {
   name: string;
   slug: string;
   description?: string;
+  ref_image:string;
+  count: number; // Number of products in this category
 }
 
 export interface ISubcategory {
@@ -74,7 +77,7 @@ export interface IProduct {
 }
 
 export interface IOrderItem {
-  productId: string;
+  productId: IProduct;
   quantity: number;
 }
 
@@ -103,6 +106,7 @@ export interface IOrder {
   shippingAddress: IShippingAddress;
   paymentMethod: string;
   placedAt: string;
+  paymentStatus: "pending" | "completed" | "failed";
   deliveredAt?: string;
 }
 
