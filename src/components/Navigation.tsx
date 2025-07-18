@@ -71,9 +71,9 @@ const Navigation = () => {
     setIsSearching(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/v1/products/search?search=${encodeURIComponent(
-          query
-        )}&limit=12`
+        `${
+          process.env.NEXT_PUBLIC_URI
+        }products/search?search=${encodeURIComponent(query)}&limit=12`
       );
 
       if (response.status === 200) {

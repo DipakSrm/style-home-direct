@@ -13,7 +13,7 @@ const TrendingProductSection = () => {
     const fetchTrendingProduct = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/products/search?isTrending=true`
+          `${process.env.NEXT_PUBLIC_URI}products/search?isTrending=true`
         );
         if (response.status === 200) {
           setTrendingProduct(response.data.data.products);

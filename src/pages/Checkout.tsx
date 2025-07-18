@@ -69,7 +69,7 @@ useEffect(() => {
 try {
  
   const res = await axios.post(
-    `http://localhost:5000/api/v1/orders`,
+    `${process.env.NEXT_PUBLIC_URI}/orders`,
     {
       items: state.items.map((item) => ({
         productId: item.productId._id,
@@ -99,10 +99,10 @@ try {
     try {
    
       const response = await axios.post(
-        `http://localhost:5000/api/v1/payment/khalti/initiate`,
+        `${process.env.NEXT_PUBLIC_URI}/payment/khalti/initiate`,
         {
-          return_url: "http://localhost:8080/orderConfirmation",
-          website_url: "http://localhost:8080/",
+          return_url: "http://sharmafurnitres.verce.app/orderConfirmation",
+          website_url: "http://sharmafurniture.vercel.app/",
           amount: parseInt((state.total * 1.13 * 100).toFixed(2)), 
           purchase_order_id: res.data.data._id,
           purchase_order_name: `${user.name} Order #${res.data.data._id}`,

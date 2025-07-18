@@ -13,7 +13,9 @@ const HeroSection = () => {
   useEffect(()=>{
     const fetchFeaturedProducts = async () => {
       try {
-        const response=await axios.get(`http://localhost:5000/api/v1/products/search?isFeatured=true`);
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_URI}products/search?isFeatured=true`
+        );
         if(response.status ===200){
 setFeaturedProducts(response.data.data.products);
         }

@@ -13,10 +13,10 @@ import Checkout from "./pages/Checkout";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
-import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/Protected";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import OrderTracking from "./pages/OrderTrackingPage";
 const queryClient = new QueryClient();
 
 const App = () => (

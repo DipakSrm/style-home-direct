@@ -31,7 +31,7 @@ const [loading, setLoading] = useState(false);
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/orders/${orderId}`,
+          `${process.env.NEXT_PUBLIC_URI}/orders/${orderId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -99,12 +99,6 @@ const [loading, setLoading] = useState(false);
       <Navigation />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Track Your Order</h1>
-          <p className="text-gray-600">
-            Enter your order number to track your shipment
-          </p>
-        </div>
 
         {orderData && (
           <Card>

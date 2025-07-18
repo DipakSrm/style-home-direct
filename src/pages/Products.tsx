@@ -47,7 +47,7 @@ const Products = () => {
     const fetchSubcategories = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/subcategories`
+          `${process.env.NEXT_PUBLIC_URI}/subcategories`
         );
         if (response.status === 200) {
           setAllSubCategories(response.data.data);
@@ -94,7 +94,7 @@ const Products = () => {
       params.append("limit", pagination.limit.toString());
 
       const response = await axios.get(
-        `http://localhost:5000/api/v1/products/search?${params.toString()}`
+        `${process.env.NEXT_PUBLIC_URI}/products/search?${params.toString()}`
       );
 
       if (response.status === 200) {

@@ -23,7 +23,7 @@ if(!token) return
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/v1/orders/my-orders`,
+        `${process.env.NEXT_PUBLIC_URI}/orders/my-orders`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

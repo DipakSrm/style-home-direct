@@ -39,7 +39,7 @@ const Profile = () => {
       const fetchUserData = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:5000/api/v1/users/me`,
+            `${process.env.NEXT_PUBLIC_URI}/users/me`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ const Profile = () => {
       const fetchAddressData = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:5000/api/v1/addresses/`,
+            `${process.env.NEXT_PUBLIC_URI}/addresses/`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -107,7 +107,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const response = await axios.patch(
-        `http://localhost:5000/api/v1/users/me/${userResponse?._id}`,
+        `${process.env.NEXT_PUBLIC_URI}/users/me/${userResponse?._id}`,
         {
           name: `${profileData.firstName} ${profileData.lastName}`,
           email: profileData.email,
@@ -142,7 +142,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/v1/addresses/`,
+        `${process.env.NEXT_PUBLIC_URI}/addresses/`,
         {
           addressLine: addressData.addressLine,
           city: addressData.city,
@@ -179,7 +179,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const response = await axios.patch(
-        `http://localhost:5000/api/v1/addresses/${addressResponse?._id}`,
+        `${process.env.NEXT_PUBLIC_URI}/addresses/${addressResponse?._id}`,
         {
           addressLine: addressData.addressLine,
           city: addressData.city,

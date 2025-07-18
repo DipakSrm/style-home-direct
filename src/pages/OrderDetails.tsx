@@ -27,7 +27,7 @@ const [order, setOrder] = useState<IOrder | null>(null);
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/orders/${orderId}`,
+          `${process.env.NEXT_PUBLIC_URI}/sorders/${orderId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -62,7 +62,7 @@ const handleKhaltiPayment = async () => {
    }
       try {
         const response = await axios.post(
-          `http://localhost:5000/api/v1/payment/khalti/initiate`,
+          `${process.env.NEXT_PUBLIC_URI}/spayment/khalti/initiate`,
           {
             return_url: "http://localhost:8080/orderConfirmation",
             website_url: "http://localhost:8080/",

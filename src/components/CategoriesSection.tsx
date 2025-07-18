@@ -12,7 +12,7 @@ const CategoriesSection = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/v1/categories`
+          `${process.env.NEXT_PUBLIC_URI}categories`
         );
         if (response.status === 200) {
           setCategories(response.data.data);
