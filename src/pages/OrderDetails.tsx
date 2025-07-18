@@ -27,7 +27,7 @@ const [order, setOrder] = useState<IOrder | null>(null);
       setLoading(true);
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_URI}/sorders/${orderId}`,
+          `${import.meta.env.VITE_API_URI}/sorders/${orderId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -62,10 +62,10 @@ const handleKhaltiPayment = async () => {
    }
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_URI}/spayment/khalti/initiate`,
+          `${import.meta.env.VITE_API_URI}/spayment/khalti/initiate`,
           {
-            return_url: "http://localhost:8080/orderConfirmation",
-            website_url: "http://localhost:8080/",
+            return_url: "http://sharmafurnitures.verce.app/orderConfirmation",
+            website_url: "http://sharmafurnitures.verce.app/",
             amount: parseInt((order.totalAmount * 100).toFixed(2)), // Convert to paisa
             purchase_order_id: order._id,
             purchase_order_name: `${user.name} Order #${order._id}`,

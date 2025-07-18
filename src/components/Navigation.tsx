@@ -72,8 +72,8 @@ const Navigation = () => {
     try {
       const response = await axios.get(
         `${
-          process.env.NEXT_PUBLIC_URI
-        }products/search?search=${encodeURIComponent(query)}&limit=12`
+          import.meta.env.VITE_API_URI
+        }/products/search?search=${encodeURIComponent(query)}&limit=12`
       );
 
       if (response.status === 200) {

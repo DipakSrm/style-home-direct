@@ -31,7 +31,7 @@ const [loading, setLoading] = useState(false);
       setLoading(true);
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_URI}/orders/${orderId}`,
+          `${import.meta.env.VITE_API_URI}/orders/${orderId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

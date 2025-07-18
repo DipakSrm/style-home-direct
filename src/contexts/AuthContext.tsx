@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserAndAddress = async (token: string) => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_URI}users/me`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URI}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const user = res.data.user;
 
         const addressRes = await axios.get(
-          `${process.env.NEXT_PUBLIC_URI}/addresses/`,
+          `${import.meta.env.VITE_API_URI}/addresses/`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_URI}/auth/login`, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URI}/auth/login`, {
         email,
         password,
       });
@@ -141,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_URI}/auth/register`,
+        `${import.meta.env.VITE_API_URI}/auth/register`,
         {
           name,
           email,

@@ -33,7 +33,7 @@ const ProductDetail = () => {
     const fetchProductDetails = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_URI}/products/${id}`
+          `${import.meta.env.VITE_API_URI}/products/${id}`
         );
         if (response.status === 200) {
           setProduct(response.data.data);
@@ -59,7 +59,7 @@ const ProductDetail = () => {
     setIsLoadingRelated(true);
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_URI}/products/search?subcategory=${encodeURIComponent(
+        `${import.meta.env.VITE_API_URI}/products/search?subcategory=${encodeURIComponent(
           product.subcategoryId.name
         )}&excludeId=${id}`
       );

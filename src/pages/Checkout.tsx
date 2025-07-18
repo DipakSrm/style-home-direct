@@ -69,7 +69,7 @@ useEffect(() => {
 try {
  
   const res = await axios.post(
-    `${process.env.NEXT_PUBLIC_URI}/orders`,
+    `${import.meta.env.VITE_API_URI}/orders`,
     {
       items: state.items.map((item) => ({
         productId: item.productId._id,
@@ -99,7 +99,7 @@ try {
     try {
    
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_URI}/payment/khalti/initiate`,
+        `${import.meta.env.VITE_API_URI}/payment/khalti/initiate`,
         {
           return_url: "http://sharmafurnitres.verce.app/orderConfirmation",
           website_url: "http://sharmafurniture.vercel.app/",

@@ -13,7 +13,7 @@ const TrendingProductSection = () => {
     const fetchTrendingProduct = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_URI}products/search?isTrending=true`
+          `${import.meta.env.VITE_API_URI}/products/search?isTrending=true`
         );
         if (response.status === 200) {
           setTrendingProduct(response.data.data.products);
